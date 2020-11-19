@@ -1,3 +1,10 @@
+This repository contains commands to help with gitlabflow.
+The origin of these commands come from the repository it is forked from: oneflow.
+
+
+
+The rest of the README is from the original oneflow repository:
+
 ![oneflow](https://user-images.githubusercontent.com/544444/32192165-aad6f8e4-bdb3-11e7-89ea-c28c20fcd04c.png)
 
 Helpful commands to help with git oneflow, based on this [blogpost](http://endoflineblog.com/oneflow-a-git-branching-model-and-workflow) in a response to gitflow.
