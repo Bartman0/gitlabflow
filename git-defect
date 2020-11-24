@@ -1,0 +1,24 @@
+#!/bin/sh
+set -e
+masterBranch="master"
+
+((!$#)) && echo "No defect name, command ignored!" && echo "  - git defect <name>" && exit 1
+
+if [[ "$1" = "--h" ]] ; then
+   echo "Creates a defect branch at the latest commit on $masterBranch and checks it out.";
+   echo "Feature branches will create a pull request to $masterBranch when finished."
+   echo "  - git defect <name>";
+   exit 1;
+fi
+
+if ! [ -d .git ] ; then
+    if ! [ $(git rev-parse --is-inside-work-tree &>/dev/null; echo "${?}") == '0' ] ; then
+        echo "Current directory is not a git folder."
+        exit 1;
+    fi
+fi
+
+echo Starting defect $1
+git pull origin $masterBranch:$masterBranch
+git checkout -b defect/$1 $masterBranch
+
