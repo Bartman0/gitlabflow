@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 masterBranch="master"
 
@@ -37,4 +37,5 @@ fi
 
 git pull origin $masterBranch:$masterBranch
 git checkout -b hotfix/$1 $head
+git push --set-upstream origin hotfix/$1
 

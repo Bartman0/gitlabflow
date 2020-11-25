@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 masterBranch="master"
 
@@ -33,4 +33,5 @@ fi
 
 echo Starting release $1
 git checkout -b release/$1 $head
+git push --set-upstream origin release/$1
 
