@@ -18,9 +18,9 @@ if ! [ -d .git ] ; then
 	fi
 fi
 
-numericRegex="^[.0-9]+$"
+numericRegex="^[0-9]+\.[0-9]+\.[0-9]+$"
 if ! [[ "$1" =~ $numericRegex ]] ; then
-   echo error: Not a numeric version
+   echo "error: Not an allowed hotfix number"
    exit 1
 fi
 

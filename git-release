@@ -17,11 +17,13 @@ if ! [ -d .git ] ; then
     fi
 fi
 
-numericRegex="^[.0-9]+$"
+numericRegex="^[0-9]+\.[0-9]+\.[0-9]+$"
 if ! [[ "$1" =~ $numericRegex ]] ; then
-   echo error: Not a numeric version
+   echo "error: Not an allowed release number"
    exit 1
 fi
+
+echo "Starting release $1"
 
 head=$masterBranch
 if [ "$2" = "" ]; then
@@ -31,7 +33,6 @@ else
     echo "Branching from requested starting point: $head"
 fi
 
-echo Starting release $1
 git checkout -b release/$1 $head
 git push --set-upstream origin release/$1
 
