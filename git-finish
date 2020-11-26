@@ -6,13 +6,8 @@ if [[ "$1" = "--h" ]] ; then
    echo "Finishing up feature, defect and hotfix branches: ";
    echo "  - git finish";
    echo ""
-   echo "Finishing up release branches: ";
-   echo "  - git finish <annotation>";
-   echo "    where annotation is optional";
-   echo ""
-   echo "This command will rebase feature branches, tag release and hotfix branches"
-   echo "and merge them back into $masterBranch."
-   echo "Afterwards, the feature/release/hotfix branch will be cleaned up"
+   echo "This command will merge master into feature branches and defect branches to catch up."
+   echo "Next, the feature/defect/hotfix branches will be pushed to start pull requests and local branches will be cleaned."
    exit 1;
 fi
 
@@ -38,6 +33,7 @@ if [[ "$(git branch -a | egrep "remotes/origin/$1" | wc -l)" = "1" ]]; then
 }
 
 create_pullrequest () {
+    echo "Pushing branch to origin to start CI process"
     git push origin $1
     originUrl=$(git config --get remote.origin.url)
 
@@ -76,15 +72,9 @@ if [[ $branch =~ ^(feature|defect)/.* ]]; then
     git pull origin $masterBranch:$masterBranch
     echo "Merging $masterBranch to catch up and resolve conflicts"
     git merge $masterBranch
-elif [[ $branch =~ ^(hotfix)/.* ]]; then
-    : 	# just here to make hotfix processing explicit
-elif [[ $branch =~ ^(release)/.* ]]; then
-    echo "Tagging release branch"
-    if [ "$1" = "" ]; then
-        git tag $shortBranch
-    else
-        git tag -a $shortBranch -m "$1"
-    fi    
+elif [[ $branch =~ ^(hotfix|release)/.* ]]; then
+    echo "Pushing branch to origin to start CI process"
+    git push origin $branch
 else 
     echo "Currently not on a feature/defect/release/hotfix branch";
     exit 1;
