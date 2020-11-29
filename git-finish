@@ -67,12 +67,12 @@ merge_to_master () {
     git push --follow-tags origin $1
 }
 
-if [[ $branch =~ ^(feature|defect)/.* ]]; then
+if [[ $branch =~ ^(feature|defect|hotfix)/.* ]]; then
     echo "Pulling latest $masterBranch from origin"
     git pull origin $masterBranch:$masterBranch
     echo "Merging $masterBranch to catch up and resolve conflicts"
     git merge $masterBranch
-elif [[ $branch =~ ^(hotfix|release)/.* ]]; then
+elif [[ $branch =~ ^(release)/.* ]]; then
     echo "Pushing branch to origin to start CI process"
     git push origin $branch
 else 
