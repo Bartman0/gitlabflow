@@ -2,12 +2,12 @@
 set -e
 masterBranch="master"
 
-((!$#)) && echo "No feature name, command ignored!" && echo "  - git feature <name>" && exit 1
+((!$#)) && echo "No defect name, command ignored!" && echo "  - git defect <name>" && exit 1
 
 if [[ "$1" = "--h" ]] ; then
-   echo "Creates a feature branch at the latest commit on $masterBranch and checks it out.";
+   echo "Creates a defect branch at the latest commit on $masterBranch and checks it out.";
    echo "Feature branches will create a pull request to $masterBranch when finished."
-   echo "  - git feature <name>";
+   echo "  - git defect <name>";
    exit 1;
 fi
 
@@ -18,8 +18,7 @@ if ! [ -d .git ] ; then
     fi
 fi
 
-echo Starting feature $1
+echo Starting defect $1
 git pull origin $masterBranch:$masterBranch
-git checkout -b feature/$1 $masterBranch
-git push --set-upstream origin feature/$1
-
+git checkout -b defect/$1 $masterBranch
+git push --set-upstream origin defect/$1

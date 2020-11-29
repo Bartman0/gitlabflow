@@ -1,124 +1,88 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 masterBranch="master"
 
 if [[ "$1" = "--h" ]] ; then
-   echo "Finishing up feature and issue branches: ";
+   echo "Finishing up feature, defect and hotfix branches: ";
    echo "  - git finish";
    echo ""
-   echo "Finishing up release and hotfix branches: ";
-   echo "  - git finish <annotation>";
-   echo	"    where annotation is optional";
-   echo ""
-   echo "This command will rebase feature branches, tag release and hotfix branches"
-   echo "and merge them back into $masterBranch."
-   echo "Afterwards, the feature/release/hotfix branch will be cleaned up"
+   echo "This command will merge master into feature branches and defect branches to catch up."
+   echo "Next, the feature/defect/hotfix branches will be pushed to start pull requests and local branches will be cleaned."
    exit 1;
 fi
 
 if ! [ -d .git ] ; then
-	if ! [ $(git rev-parse --is-inside-work-tree &>/dev/null; echo "${?}") == '0' ] ; then
-		echo "Current directory is not a git folder."
-		exit 1;
-	fi
+    if ! [ $(git rev-parse --is-inside-work-tree &>/dev/null; echo "${?}") == '0' ] ; then
+        echo "Current directory is not a git folder."
+        exit 1;
+    fi
 fi
 
 branch=$(git rev-parse --abbrev-ref HEAD)
-shortBranch=$(echo $branch| cut -d'/' -f 2)
+shortBranch=$(echo $branch | cut -d'/' -f 2)
 
 cleanup_localbranch () {
-echo "Do you wish to delete the local branch $1?"
-select yn in "Yes" "No"; do
-    case $yn in
-        Yes ) echo "Cleaning up local branch"; git branch -D $1; break;;
-        No ) break;;
-    esac
-done
+    echo "Cleaning up local branch"
+    git branch -D $1
 }
 
 cleanup_remotebranch () {
 if [[ "$(git branch -a | egrep "remotes/origin/$1" | wc -l)" = "1" ]]; then
-    echo "Do you wish to delete the remote branch remotes/origin/$1?"
-    select yn in "Yes" "No"; do
-        case $yn in
-            Yes ) echo "Cleaning up remote branch"; git push origin :$1; break;;
-            No ) break;;
-        esac
-    done	
-fi
+    echo "Cleaning up remote branch"
+    git push origin --delete $1
 }
 
 create_pullrequest () {
-git push origin $1
-originUrl=$(git config --get remote.origin.url)
+    echo "Pushing branch to origin to start CI process"
+    git push origin $1
+    originUrl=$(git config --get remote.origin.url)
 
-vsoRegex=".visualstudio.com"
-if [[ "$originUrl" =~ $vsoRegex ]] ; then
-   originUrl="$originUrl/pullrequestcreate?targetRef=master&sourceRef=$1"
-fi	
+    vsoRegex=".visualstudio.com"
+    if [[ "$originUrl" =~ $vsoRegex ]] ; then
+       originUrl="$originUrl/pullrequestcreate?targetRef=master&sourceRef=$1"
+    fi    
 
-case $( uname -s ) in
-  Darwin)  open='open';;
-  MINGW*)  open='start';;
-  MSYS*)   open='start';;
-  CYGWIN*) open='cygstart';;
-  *)       open='xdg-open';;
-esac
+    case $( uname -s ) in
+      Darwin)  open='open';;
+      MINGW*)  open='start';;
+      MSYS*)   open='start';;
+      CYGWIN*) open='cygstart';;
+      *)       open='xdg-open';;
+    esac
 
-# Allow printing the url if BROWSER=echo
-if [[ $BROWSER != "echo" ]]; then
-  exec &>/dev/null
-fi
+    # Allow printing the url if BROWSER=echo
+    if [[ $BROWSER != "echo" ]]; then
+      exec &>/dev/null
+    fi
 
+    # open it in a browser
+    ${BROWSER:-$open} "$originUrl"
 
-# open it in a browser
-${BROWSER:-$open} "$originUrl"
-
-cleanup_localbranch $1
+    cleanup_localbranch $1
 }
 
-mergetomaster () {
-echo "Merging to $1"
-git merge --no-ff  $2
-git push --follow-tags origin $1
+merge_to_master () {
+    echo "Merging to $1 from $2"
+    git merge --no-ff $2
+    git push --follow-tags origin $1
 }
 
-if [[ $branch =~ ^(feature|issue).* ]]; then
-    echo Pulling latest $masterBranch from origin
-	git pull origin $masterBranch:$masterBranch
-	
-    echo Rebasing branch using $masterBranch
-	git rebase -i $masterBranch		
-elif [[ $branch =~ ^(release|hotfix).* ]]; then
-    echo Tagging release branch
-	
-	if [ "$1" = "" ]; then
-		git tag V$shortBranch
-	else
-		git tag -a V$shortBranch -m "$1"
-	fi	
+if [[ $branch =~ ^(feature|defect|hotfix)/.* ]]; then
+    echo "Pulling latest $masterBranch from origin"
+    git pull origin $masterBranch:$masterBranch
+    echo "Merging $masterBranch to catch up and resolve conflicts"
+    git merge $masterBranch
+elif [[ $branch =~ ^(release)/.* ]]; then
+    echo "Pushing branch to origin to start CI process"
+    git push origin $branch
 else 
-	echo "Currently not on a feature/issue/release/hotfix branch";
-	exit 1;
+    echo "Currently not on a feature/defect/release/hotfix branch";
+    exit 1;
 fi
 
-git checkout $masterBranch
-
-if [[ $branch =~ ^feature.* ]]; then	
-	echo "Do you wish to: "
-	select opt in "Merge to $masterBranch" "Create a pull request"; do
-		case $opt in
-			"Merge to $masterBranch" ) mergetomaster $masterBranch $branch; break;;
-			"Create a pull request" ) create_pullrequest $branch; exit 0; break;;
-		esac
-	done
-elif [[ $branch =~ ^issue.* ]]; then
-	echo "Merging to $masterBranch"
-	git merge --no-ff $branch -m "Resolving issue #$shortBranch"
-	git push origin $masterBranch
+if [[ $branch =~ ^(feature|defect|hotfix)/.* ]]; then    
+    create_pullrequest $branch && cleanup_localbranch $branch
 else
-	mergetomaster $masterBranch $branch
+    echo "Releases are not merged to master in any way"
 fi
 
-cleanup_localbranch $branch
-cleanup_remotebranch $branch
