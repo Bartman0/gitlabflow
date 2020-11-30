@@ -52,6 +52,18 @@ function parse {
     majorpart="${majorpart%.*}"
 }
 
+cleanup_localbranch () {
+    echo "Cleaning up local branch"
+    git branch -D $1
+}
+
+merge_to_master () {
+    echo "Merging to $1 from $2"
+    git merge --no-ff $2
+    # do not push, leave the opportunity open to revert to origin
+    #git push --follow-tags origin $1
+}
+
 # pull and checkout master
 echo "Pull $masterBranch from origin"
 git pull origin $masterBranch:$masterBranch
@@ -60,5 +72,11 @@ git pull origin $masterBranch:$masterBranch
 parse
 echo "Current version: $majorpart.$minorpart.$patchpart"
 
-git merge --no-ff "$1"
+merge_to_master "$masterBranch" "$1"
+cleanup_localbranch "$1"
+
+echo "Merge to master has been done, the local branch has been cleaned"
+echo "If everything is OK, please execute:"
+echo "  - git push --follow-tags origin master"
+echo "  - git push origin --delete $1"
 

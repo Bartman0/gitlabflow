@@ -18,7 +18,7 @@ if ! [ -d .git ] ; then
     fi
 fi
 
-echo Starting feature $1
+echo "Starting feature $1"
 git pull origin $masterBranch:$masterBranch
 git checkout -b feature/$1 $masterBranch
 git push --set-upstream origin feature/$1

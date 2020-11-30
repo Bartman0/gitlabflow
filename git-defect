@@ -18,7 +18,7 @@ if ! [ -d .git ] ; then
     fi
 fi
 
-echo Starting defect $1
+echo "Starting defect $1"
 git pull origin $masterBranch:$masterBranch
 git checkout -b defect/$1 $masterBranch
 git push --set-upstream origin defect/$1
