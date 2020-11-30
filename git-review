@@ -26,7 +26,8 @@ shortBranch=$(echo $branch| cut -d'/' -f 2)
 
 if [[ $branch =~ ^(feature|defect|release|hotfix)/.* ]]; then
     echo "Creating pull request"
-    gh pr create --fill --base $baseBranch
+    #gh pr create --fill --base $baseBranch
+    echo "Not converted yet"
 else 
     echo "Currently not on a feature/defect/release/hotfix branch";
     exit 1;

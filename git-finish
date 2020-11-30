@@ -21,6 +21,10 @@ fi
 branch=$(git rev-parse --abbrev-ref HEAD)
 shortBranch=$(echo $branch | cut -d'/' -f 2)
 
+uriencode () {
+    jq -nr --arg v "$1" '$v|@uri'
+}
+
 cleanup_localbranch () {
     echo "Cleaning up local branch"
     git branch -D $1
@@ -40,20 +44,29 @@ create_pullrequest () {
 
     vsoRegex=".visualstudio.com"
     if [[ "$originUrl" =~ $vsoRegex ]] ; then
-       originUrl="$originUrl/pullrequestcreate?targetRef=master&sourceRef=$1"
+        originUrl="$originUrl/pullrequestcreate?targetRef=master&sourceRef=$1"
     fi    
 
+    # https://pnl.gitlab.schubergphilis.com/LED/poc/gitlabflow-test/-/merge_requests/new?utf8=✓&merge_request%5Bsource_project_id%5D=2443&merge_request%5Bsource_branch%5D=hotfix%2F6.6.9&merge_request%5Btarget_project_id%5D=2443&merge_request%5Btarget_branch%5D=master
+    gitlabRegex="\.gitlab\."
+    if [[ "$originUrl" =~ $gitlabRegex ]] ; then
+        originUrl=${originUrl%.git}      
+        uri="merge_request[source_branch]"
+        uri=$(uriencode "$uri")
+        originUrl="$originUrl/-/merge_requests/new?$uri=$branch"
+    fi
+
     case $( uname -s ) in
-      Darwin)  open='open';;
-      MINGW*)  open='start';;
-      MSYS*)   open='start';;
-      CYGWIN*) open='cygstart';;
-      *)       open='xdg-open';;
+        Darwin)  open='open';;
+        MINGW*)  open='start';;
+        MSYS*)   open='start';;
+        CYGWIN*) open='cygstart';;
+        *)       open='xdg-open';;
     esac
 
     # Allow printing the url if BROWSER=echo
     if [[ $BROWSER != "echo" ]]; then
-      exec &>/dev/null
+        exec &>/dev/null
     fi
 
     # open it in a browser
