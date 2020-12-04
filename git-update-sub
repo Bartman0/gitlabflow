@@ -18,7 +18,6 @@ if [[ "${target,,}" = "--all" ]] ; then
 	echo "now the submodules are in the state we want, so commit"
 	git commit -am "Pulled down updates to all submodules"
 else
-
 	echo "change to the submodule directory: $target"
 	cd $target
 
@@ -34,12 +33,7 @@ else
 	echo "now the submodule is in the state we want, so commit"
 	git commit -am "Pulled down update to $target"
 fi
-	
-	
-echo "Do you want to push to origin?"
-select yn in "Yes" "No"; do
-    case $yn in
-        Yes ) git push origin HEAD; break;;
-        No ) break;;
-    esac
-done
+
+echo "To push, execute:"
+echo "  - git push origin HEAD"
+
