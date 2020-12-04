@@ -32,9 +32,10 @@ then
     exit 1
 fi
 
-if [[ ! "$1" =~ ^(feature|defect|hotfix)\/.*$ ]]
+#if [[ ! "$1" =~ ^(feature|defect|hotfix)\/.*$ ]]
+if [[ ! "$1" =~ ^(release|hotfix)\/.*$ ]]
 then
-    echo "Only features, defects or hotfixes can be merged"
+    echo "Only releases or hotfixes can be merged"
     exit 1
 fi
 
@@ -67,7 +68,6 @@ merge_to_master () {
 # pull and checkout master
 echo "Pull $masterBranch from origin"
 git pull origin $masterBranch:$masterBranch
-#git checkout $masterBranch
 
 parse
 echo "Current version: $majorpart.$minorpart.$patchpart"

@@ -86,6 +86,8 @@ if [[ $branch =~ ^(feature|defect|hotfix)/.* ]]; then
     git pull origin $masterBranch:$masterBranch
     echo "Merging $masterBranch to catch up and resolve conflicts"
     git merge $masterBranch
+    echo "Pushing branch to origin to start CI process"
+    git push origin $branch
 elif [[ $branch =~ ^(release)/.* ]]; then
     echo "Pushing branch to origin to start CI process"
     git push origin $branch
@@ -94,9 +96,9 @@ else
     exit 1;
 fi
 
-if [[ $branch =~ ^(feature|defect|hotfix)/.* ]]; then    
+if [[ $branch =~ ^(release|feature|defect|hotfix)/.* ]]; then    
     create_pullrequest $branch && cleanup_localbranch $branch
-else
-    echo "Releases are not merged to master in any way"
+#else
+#    echo "Releases are not merged to master in any way"
 fi
 
