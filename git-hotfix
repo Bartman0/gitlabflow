@@ -4,7 +4,7 @@ masterBranch="master"
 
 ((!$#)) && echo "No hotfix name, command ignored!" && echo "  - git hotfix <version> <tag>" && exit 1
 
-if [[ "$1" = "--h" ]] ; then
+if [[ "$1" = "--help" ]] ; then
    echo "Creates a hotfix branch at the latest available tag and checks it out.";
    echo "  - git hotfix <version> <tag>";
    echo "Tag is optional. If not supplied, it will take the latest tag automatically"

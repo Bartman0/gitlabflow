@@ -4,7 +4,7 @@ masterBranch="master"
 
 ((!$#)) && echo "No release name, command ignored!" && echo "  - git release <version> <startingPoint>" && exit 1
 
-if [[ "$1" = "--h" ]] ; then
+if [[ "$1" = "--help" ]] ; then
    echo "Creates a release branch at either the latest commit on $masterBranch or, when supplied, the <startingPoint> and checks it out.";
    echo "  - git release <version> <startingPoint>";
    exit 1;

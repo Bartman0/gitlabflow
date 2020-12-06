@@ -4,7 +4,7 @@ masterBranch="master"
 
 ((!$#)) && echo "No defect name, command ignored!" && echo "  - git defect <name>" && exit 1
 
-if [[ "$1" = "--h" ]] ; then
+if [[ "$1" = "--help" ]] ; then
    echo "Creates a defect branch at the latest commit on $masterBranch and checks it out.";
    echo "Feature branches will create a pull request to $masterBranch when finished."
    echo "  - git defect <name>";

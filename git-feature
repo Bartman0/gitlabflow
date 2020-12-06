@@ -4,7 +4,7 @@ masterBranch="master"
 
 ((!$#)) && echo "No feature name, command ignored!" && echo "  - git feature <name>" && exit 1
 
-if [[ "$1" = "--h" ]] ; then
+if [[ "$1" = "--help" ]] ; then
    echo "Creates a feature branch at the latest commit on $masterBranch and checks it out.";
    echo "Feature branches will create a pull request to $masterBranch when finished."
    echo "  - git feature <name>";

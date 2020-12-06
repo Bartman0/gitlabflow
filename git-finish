@@ -7,7 +7,7 @@ masterBranch="master"
 alias trace_on='set -x'
 alias trace_off='{ set +x; } 2>/dev/null'
 
-if [[ "$1" = "--h" ]] ; then
+if [[ "$1" = "--help" ]] ; then
    echo "Finishing up feature, defect and hotfix branches: ";
    echo "  - git finish";
    echo ""
