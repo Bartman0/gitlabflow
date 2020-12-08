@@ -3,6 +3,7 @@ set -e
 shopt -s expand_aliases
 
 masterBranch="master"
+latestTag=$(git describe --tags `git rev-list --tags --max-count=1`)
 
 alias trace_on='set -x'
 alias trace_off='{ set +x; } 2>/dev/null'
@@ -26,6 +27,28 @@ fi
 branch=$(git rev-parse --abbrev-ref HEAD)
 shortBranch=$(echo $branch | cut -d'/' -f 2)
 
+parse {
+    version=$(git tag -l "[0-9]*.[0-9]*.[0-9]*" | sort --version-sort --field-separator=. | tail -n1)
+
+    if [ -z "$version" ]
+    then
+        version="0.0.0"
+    fi
+
+    patchpart="${version##*.}"
+    majorpart="${version%.*}"
+    minorpart="${majorpart#*.}"
+    majorpart="${majorpart%.*}"
+}
+
+release_number {
+    case "$1" in
+        major) version="$((majorpart+1)).0.0" ;;
+        minor) version="$majorpart.$((minorpart+1)).0" ;;
+        patch) version="$majorpart.$minorpart.$((patchpart+1))" ;;
+    esac
+}
+
 uriencode () {
     jq -nr --arg v "$1" '$v|@uri'
 }
@@ -47,18 +70,37 @@ create_pullrequest () {
     git push origin $1
     originUrl=$(git config --get remote.origin.url)
 
+    targetBranch=$masterBranch
+    if [[ $branch =~ ^(feature|defect)/.* ]]; then
+        if [[ "$2" =~ ^(major|minor|patch)$ ]]; then
+            parse
+            release=release/$(release_number "$2")
+        else
+            if [[ "$2" =~ [0-9]+\.[0-9]+\.[0-9]+ ]]; then
+                release=release/"$2"
+                
+            else
+                echo "No valid release argument given, I don't know which release to target"
+                exit 1
+            fi
+        fi
+        targetBranch="$release"
+    fi
+
     vsoRegex=".visualstudio.com"
-    if [[ "$originUrl" =~ $vsoRegex ]] ; then
+    if [[ "$originUrl" =~ $vsoRegex ]]; then
         originUrl="$originUrl/pullrequestcreate?targetRef=master&sourceRef=$1"
     fi    
 
     # https://pnl.gitlab.schubergphilis.com/LED/poc/gitlabflow-test/-/merge_requests/new?utf8=✓&merge_request%5Bsource_project_id%5D=2443&merge_request%5Bsource_branch%5D=hotfix%2F6.6.9&merge_request%5Btarget_project_id%5D=2443&merge_request%5Btarget_branch%5D=master
     gitlabRegex="\.gitlab\."
-    if [[ "$originUrl" =~ $gitlabRegex ]] ; then
+    if [[ "$originUrl" =~ $gitlabRegex ]]; then
         originUrl=${originUrl%.git}      
-        uri="merge_request[source_branch]"
-        uri=$(uriencode "$uri")
-        originUrl="$originUrl/-/merge_requests/new?$uri=$branch"
+        uri_source="merge_request[source_branch]=$branch"
+        uri_source=$(uriencode "$uri_source")
+        uri_target="merge_request[target_branch]=$targetBranch"
+        uri_target=$(uriencode "$uri_target")
+        originUrl="$originUrl/-/merge_requests/new?$uri_source&uri_target"
     fi
 
     case $( uname -s ) in
@@ -102,7 +144,7 @@ else
 fi
 
 if [[ $branch =~ ^(release|feature|defect|hotfix)/.* ]]; then    
-    create_pullrequest $branch && cleanup_localbranch $branch
+    create_pullrequest $branch "$1" && cleanup_localbranch $branch
 #else
 #    echo "Releases are not merged to master in any way"
 fi
