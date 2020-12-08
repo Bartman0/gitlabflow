@@ -27,7 +27,7 @@ fi
 branch=$(git rev-parse --abbrev-ref HEAD)
 shortBranch=$(echo $branch | cut -d'/' -f 2)
 
-parse {
+parse () {
     version=$(git tag -l "[0-9]*.[0-9]*.[0-9]*" | sort --version-sort --field-separator=. | tail -n1)
 
     if [ -z "$version" ]
@@ -41,7 +41,7 @@ parse {
     majorpart="${majorpart%.*}"
 }
 
-release_number {
+release_number () {
     case "$1" in
         major) version="$((majorpart+1)).0.0" ;;
         minor) version="$majorpart.$((minorpart+1)).0" ;;
@@ -78,13 +78,18 @@ create_pullrequest () {
         else
             if [[ "$2" =~ [0-9]+\.[0-9]+\.[0-9]+ ]]; then
                 release=release/"$2"
-                
             else
                 echo "No valid release argument given, I don't know which release to target"
                 exit 1
             fi
         fi
         targetBranch="$release"
+        targetShortBranch=$(echo $targetBranch | cut -d'/' -f 2)
+        if [[ $(git branch --list | egrep "$targetBranch" | wc -l) = "0" ]]; then
+            echo "Can't find the specified release, please create it first:"
+            echo "  - git-release $targetShortBranch"
+            exit 1
+        fi
     fi
 
     vsoRegex=".visualstudio.com"
@@ -129,6 +134,8 @@ merge_to_master () {
 }
 
 if [[ $branch =~ ^(feature|defect|hotfix)/.* ]]; then
+    echo "Fetching latest information"
+    git fetch --progress --all --prune
     echo "Pulling latest $masterBranch from origin"
     git pull origin $masterBranch:$masterBranch
     echo "Merging $masterBranch to catch up and resolve conflicts"
