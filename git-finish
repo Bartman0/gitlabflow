@@ -3,18 +3,25 @@ set -e
 shopt -s expand_aliases
 
 masterBranch="master"
-latestTag=$(git describe --tags `git rev-list --tags --max-count=1`)
 
 alias trace_on='set -x'
 alias trace_off='{ set +x; } 2>/dev/null'
 
 if [[ "$1" = "--help" ]] ; then
-   echo "Finishing up feature, defect and hotfix branches: ";
-   echo "  - git finish";
-   echo ""
-   echo "This command will merge master into feature branches and defect branches to catch up."
-   echo "Next, the feature/defect/hotfix branches will be pushed to start pull requests and local branches will be cleaned."
-   exit 1;
+    echo "Finishing up feature, defect and hotfix branches: ";
+    echo "  - git finish";
+    echo ""
+    echo "This command will merge master into feature branches and defect branches to catch up."
+    echo "Next, the feature/defect/hotfix branches will be pushed to start pull requests and local branches will be cleaned."
+    exit 1;
+fi
+
+tags=$(git rev-list --tags --max-count=1)
+if [[ "$1" =~ ^(major|minor|patch)$ ]]; then
+    if [ "$tags" == "" ]; then
+        echo "No tags to be found, can't automatically generate the next release number"
+        exit 1;
+    fi
 fi
 
 if ! [ -d .git ] ; then
@@ -59,7 +66,7 @@ cleanup_localbranch () {
 }
 
 cleanup_remotebranch () {
-    if [[ $(git branch -a | egrep "remotes/origin/$1" | wc -l) = "1" ]]; then
+    if [[ $(git branch -a | egrep "remotes/origin/$1" | wc -l | tr -d ' ') = "1" ]]; then
         echo "Cleaning up remote branch"
         git push origin --delete $1
     fi
@@ -85,7 +92,7 @@ create_pullrequest () {
         fi
         targetBranch="$release"
         targetShortBranch=$(echo $targetBranch | cut -d'/' -f 2)
-        if [[ $(git branch --list | egrep "$targetBranch" | wc -l) = "0" ]]; then
+        if [[ $(git branch --list | egrep -e "$targetBranch" | wc -l | tr -d ' ') = "0" ]]; then
             echo "Can't find the specified release, please create it first:"
             echo "  - git-release $targetShortBranch"
             exit 1
@@ -101,11 +108,17 @@ create_pullrequest () {
     gitlabRegex="\.gitlab\."
     if [[ "$originUrl" =~ $gitlabRegex ]]; then
         originUrl=${originUrl%.git}      
-        uri_source="merge_request[source_branch]=$branch"
-        uri_source=$(uriencode "$uri_source")
-        uri_target="merge_request[target_branch]=$targetBranch"
-        uri_target=$(uriencode "$uri_target")
-        originUrl="$originUrl/-/merge_requests/new?$uri_source&uri_target"
+        uri_source1="merge_request[source_branch]"
+	uri_source2="$branch"
+        uri_source1=$(uriencode "$uri_source1")
+        uri_source2=$(uriencode "$uri_source2")
+	uri_source="$uri_source1=$uri_source2"
+        uri_target1="merge_request[target_branch]"
+	uri_target2="$targetBranch"
+        uri_target1=$(uriencode "$uri_target1")
+        uri_target2=$(uriencode "$uri_target2")
+	uri_target="$uri_target1=$uri_target2"
+        originUrl="$originUrl/-/merge_requests/new?$uri_source&$uri_target"
     fi
 
     case $( uname -s ) in
