@@ -32,13 +32,6 @@ then
     exit 1
 fi
 
-#if [[ ! "$1" =~ ^(feature|defect|hotfix)\/.*$ ]]
-if [[ ! "$1" =~ ^(release|hotfix)\/.*$ ]]
-then
-    echo "Only releases or hotfixes can be merged"
-    exit 1
-fi
-
 function parse {
     version=$(git tag -l [0-9]*.[0-9]*.[0-9]* | sort --version-sort --field-separator=. | tail -n1)
 
@@ -72,11 +65,24 @@ git pull origin $masterBranch:$masterBranch
 parse
 echo "Current version: $majorpart.$minorpart.$patchpart"
 
-merge_to_master "$masterBranch" "$1"
-cleanup_localbranch "$1"
+src="$1"
+if [[ "$src" =~ [0-9]+\.[0-9]+\.[0-9]+ ]]
+then
+    # convenience: assume release/$1 if the input was a version number
+    src="release/$1"
+fi
+
+if [[ ! "$src" =~ ^(release|hotfix)\/.*$ ]]
+then
+    echo "Only releases or hotfixes can be merged"
+    exit 1
+fi
+
+merge_to_master "$masterBranch" "$src"
+cleanup_localbranch "$src"
 
 echo "Merge to master has been done, the local branch has been cleaned"
 echo "If everything is OK, please execute:"
 echo "  - git push --follow-tags origin master"
-echo "  - git push origin --delete $1"
+echo "  - git push origin --delete $src"
 
