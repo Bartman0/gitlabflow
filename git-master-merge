@@ -60,7 +60,8 @@ merge_to_master () {
 
 # pull and checkout master
 echo "Pull $masterBranch from origin"
-git pull origin $masterBranch:$masterBranch
+#git pull origin $masterBranch:$masterBranch
+git pull origin $masterBranch
 
 parse
 echo "Current version: $majorpart.$minorpart.$patchpart"
