@@ -109,15 +109,15 @@ create_pullrequest () {
     if [[ "$originUrl" =~ $gitlabRegex ]]; then
         originUrl=${originUrl%.git}      
         uri_source1="merge_request[source_branch]"
-	uri_source2="$branch"
+        uri_source2="$branch"
         uri_source1=$(uriencode "$uri_source1")
         uri_source2=$(uriencode "$uri_source2")
-	uri_source="$uri_source1=$uri_source2"
+        uri_source="$uri_source1=$uri_source2"
         uri_target1="merge_request[target_branch]"
-	uri_target2="$targetBranch"
+        uri_target2="$targetBranch"
         uri_target1=$(uriencode "$uri_target1")
         uri_target2=$(uriencode "$uri_target2")
-	uri_target="$uri_target1=$uri_target2"
+        uri_target="$uri_target1=$uri_target2"
         originUrl="$originUrl/-/merge_requests/new?$uri_source&$uri_target"
     fi
 
@@ -128,6 +128,11 @@ create_pullrequest () {
         CYGWIN*) open='cygstart';;
         *)       open='xdg-open';;
     esac
+
+    # change for microsoft systems, probably WSL
+    if [[ "$(uname -a)" =~ /[Mm]icrosoft/ ]];
+        open='wslview'
+    fi
 
     # Allow printing the url if BROWSER=echo
     if [[ $BROWSER != "echo" ]]; then

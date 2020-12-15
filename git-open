@@ -15,13 +15,18 @@ fi
 
 originUrl=$(git config --get remote.origin.url)
 
-case $( uname -s ) in
+case $(uname -s) in
   Darwin)  open='open';;
   MINGW*)  open='start';;
   MSYS*)   open='start';;
   CYGWIN*) open='cygstart';;
   *)       open='xdg-open';;
 esac
+
+# change for microsoft systems, probably WSL
+if [[ "$(uname -a)" =~ /[Mm]icrosoft/ ]];
+  open='wslview'
+fi
 
 # Allow printing the url if BROWSER=echo
 if [[ $BROWSER != "echo" ]]; then
