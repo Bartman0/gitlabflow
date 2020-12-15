@@ -24,7 +24,7 @@ case $(uname -s) in
 esac
 
 # change for microsoft systems, probably WSL
-if [[ "$(uname -a)" =~ /[Mm]icrosoft/ ]];
+if [[ "$(uname -a)" =~ /[Mm]icrosoft/ ]]; then
   open='wslview'
 fi
 
