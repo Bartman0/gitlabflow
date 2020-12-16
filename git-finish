@@ -76,6 +76,7 @@ create_pullrequest () {
     echo "Pushing branch to origin to start CI process"
     git push origin $1
     originUrl=$(git config --get remote.origin.url)
+    originUrl=$(echo "$originUrl" | sed 's/ssh:\/\/git@\(.*\):[0-9][0-9]*\/\(.*\).git/https:\/\/\1\/\2.git/')
 
     targetBranch=$masterBranch
     if [[ $branch =~ ^(feature|defect)/.* ]]; then

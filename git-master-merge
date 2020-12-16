@@ -58,6 +58,9 @@ merge_to_master () {
     #git push --follow-tags origin $1
 }
 
+# pull source branch
+echo "Pull $1 from origin"
+git pull origin $1
 # pull and checkout master
 echo "Pull $masterBranch from origin"
 #git pull origin $masterBranch:$masterBranch
