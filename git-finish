@@ -155,7 +155,7 @@ if [[ $branch =~ ^(feature|defect|hotfix)/.* ]]; then
     echo "Fetching latest information"
     git fetch --progress --all --prune
     echo "Pulling latest $masterBranch from origin"
-    git pull origin $masterBranch:$masterBranch
+    git pull origin $masterBranch
     echo "Merging $masterBranch to catch up and resolve conflicts"
     git merge $masterBranch
     echo "Pushing branch to origin to start CI process"
