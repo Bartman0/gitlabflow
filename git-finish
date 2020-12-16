@@ -159,11 +159,14 @@ if [[ $branch =~ ^(feature|defect|hotfix)/.* ]]; then
     git pull origin $masterBranch
     echo "Merging $masterBranch to catch up and resolve conflicts"
     git merge $masterBranch
-    echo "Pushing branch to origin to start CI process"
-    git push origin $branch
+    # do not push the branch here, create a pull request further down the line
+    #echo "Pushing branch to origin to start CI process"
+    #git push origin $branch
 elif [[ $branch =~ ^(release)/.* ]]; then
-    echo "Pushing branch to origin to start CI process"
-    git push origin $branch
+    # do not push the branch here, create a pull request further down the line
+    #echo "Pushing branch to origin to start CI process"
+    #git push origin $branch
+    :
 else 
     echo "Currently not on a feature/defect/release/hotfix branch";
     exit 1;
