@@ -73,8 +73,6 @@ cleanup_remotebranch () {
 }
 
 create_pullrequest () {
-    echo "Pushing branch to origin to start CI process"
-    git push origin $1
     originUrl=$(git config --get remote.origin.url)
     originUrl=$(echo "$originUrl" | sed 's/ssh:\/\/git@\(.*\):[0-9][0-9]*\/\(.*\).git/https:\/\/\1\/\2.git/')
 
@@ -159,14 +157,11 @@ if [[ $branch =~ ^(feature|defect|hotfix)/.* ]]; then
     git pull origin $masterBranch
     echo "Merging $masterBranch to catch up and resolve conflicts"
     git merge $masterBranch
-    # do not push the branch here, create a pull request further down the line
-    #echo "Pushing branch to origin to start CI process"
-    #git push origin $branch
+    echo "Pushing branch to origin to start CI process"
+    git push origin $branch
 elif [[ $branch =~ ^(release)/.* ]]; then
-    # do not push the branch here, create a pull request further down the line
-    #echo "Pushing branch to origin to start CI process"
-    #git push origin $branch
-    :
+    echo "Pushing branch to origin to start CI process"
+    git push origin $branch
 else 
     echo "Currently not on a feature/defect/release/hotfix branch";
     exit 1;
