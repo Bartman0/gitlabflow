@@ -48,29 +48,21 @@ function parse {
 
 cleanup_localbranch () {
     echo "Cleaning up local branch"
-    git branch -D $1
+    git branch -D $1 2>/dev/null || :
 }
 
 merge_to_master () {
     echo "Merging to $1 from $2"
-    git merge --no-ff $2
+    git merge --no-ff origin/$2
     # do not push, leave the opportunity open to revert to origin
     #git push --follow-tags origin $1
 }
-
-# pull source branch
-echo "Pull $1 from origin"
-git pull origin $1
-# pull and checkout master
-echo "Pull $masterBranch from origin"
-#git pull origin $masterBranch:$masterBranch
-git pull origin $masterBranch
 
 parse
 echo "Current version: $majorpart.$minorpart.$patchpart"
 
 src="$1"
-if [[ "$src" =~ [0-9]+\.[0-9]+\.[0-9]+ ]]
+if [[ "$src" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]
 then
     # convenience: assume release/$1 if the input was a version number
     src="release/$1"
@@ -82,9 +74,17 @@ then
     exit 1
 fi
 
+# fetch source branch
+echo "Fetch $src from origin"
+git fetch origin $src
+# pull and checkout master
+echo "Pull $masterBranch from origin"
+git pull origin $masterBranch
+
 merge_to_master "$masterBranch" "$src"
 cleanup_localbranch "$src"
 
+echo ""
 echo "Merge to master has been done, the local branch has been cleaned"
 echo "If everything is OK, please execute:"
 echo "  - git push --follow-tags origin master"
