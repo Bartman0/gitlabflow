@@ -96,7 +96,7 @@ create_pullrequest () {
         fi
         if [[ $(git branch --list | egrep -e "${targetBranch}" | wc -l | tr -d ' ') = "0" ]]; then
             echo "Can't find the specified release, please create it first:"
-            echo "  - git-release $targetShortBranch"
+            echo "  - led-release $targetShortBranch"
             exit 1
         fi
     fi
