@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+
+if [[ "$1" = "--help" ]] ; then
+   echo "Clean out any local branches that have been deleted remotely";
+   echo "  - git clean fetch";
+   exit 1;
+fi
+
+git fetch --progress --all --prune
+git branch -vv | awk '/: gone]/{print $1}' | xargs git branch -D
