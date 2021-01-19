@@ -1,0 +1,92 @@
+#!/bin/bash
+set -e
+masterBranch="master"
+
+if [[ "$1" = "--help" ]] ; then
+   echo "Merge to master: ";
+   echo "  - git master merge <branch>";
+   echo ""
+   echo "This command will merge features/defects/hotfixes to master branches."
+   exit 1;
+fi
+
+if ! [ -d .git ] ; then
+	if ! [ "$(git rev-parse --is-inside-work-tree &>/dev/null; echo "${?}")" == "0" ] ; then
+		echo "Current directory is not a git folder."
+		exit 1;
+	fi
+fi
+
+branch=$(git rev-parse --abbrev-ref HEAD)
+shortBranch=$(echo $branch | cut -d'/' -f 2)
+
+if [[ "$masterBranch" != "$shortBranch" ]]
+then
+    echo "We are not on the master branch, currently, please checkout first to make sure of its status"
+    exit 1
+fi
+
+if [[ "$1" == "" ]]
+then
+    echo "Please specify a branch to merge"
+    exit 1
+fi
+
+function parse {
+    version=$(git tag -l [0-9]*.[0-9]*.[0-9]* | sort --version-sort --field-separator=. | tail -n1)
+
+    if [ -z "$version" ]
+    then
+        version="0.0.0"
+    fi
+
+    patchpart="${version##*.}"
+    majorpart="${version%.*}"
+    minorpart="${majorpart#*.}"
+    majorpart="${majorpart%.*}"
+}
+
+cleanup_localbranch () {
+    echo "Cleaning up local branch"
+    git branch -D $1 2>/dev/null || :
+}
+
+merge_to_master () {
+    echo "Merging to $1 from $2"
+    git merge --no-ff origin/$2
+    # do not push, leave the opportunity open to revert to origin
+    #git push --follow-tags origin $1
+}
+
+parse
+echo "Current version: $majorpart.$minorpart.$patchpart"
+
+src="$1"
+if [[ "$src" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]
+then
+    # convenience: assume release/$1 if the input was a version number
+    src="release/$1"
+fi
+
+if [[ ! "$src" =~ ^(release|hotfix)\/.*$ ]]
+then
+    echo "Only releases or hotfixes can be merged"
+    exit 1
+fi
+
+# fetch source branch
+echo "Fetch $src from origin"
+git fetch origin $src
+# pull and checkout master
+echo "Pull $masterBranch from origin"
+git pull origin $masterBranch
+
+merge_to_master "$masterBranch" "$src"
+cleanup_localbranch "$src"
+
+echo ""
+echo "Merge to master has been done, the local branch has been cleaned"
+echo "If everything is OK, please execute:"
+echo "  - git push --follow-tags origin master"
+echo "  - git push origin --delete $src"
+
