@@ -91,7 +91,10 @@ create_pullrequest () {
         fi
         targetBranch="$release"
         targetShortBranch=$(echo $targetBranch | cut -d'/' -f 2)
-        if [[ $(git branch --list | egrep -e "$targetBranch" | wc -l | tr -d ' ') = "0" ]]; then
+        if [[ $(git branch -a | grep "${targetBranch}" | wc -l | tr -d ' ') = "0" ]]; then
+            git fetch origin "$targetBranch"
+        fi
+        if [[ $(git branch --list | egrep -e "${targetBranch}" | wc -l | tr -d ' ') = "0" ]]; then
             echo "Can't find the specified release, please create it first:"
             echo "  - git-release $targetShortBranch"
             exit 1
